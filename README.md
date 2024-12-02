@@ -16,12 +16,12 @@ PharmaDB is a comprehensive pharmaceutical management system designed to streaml
 ## Tech Stack
 
 - **Frontend**: React, Material-UI for modern and responsive UI design.
-- **Backend**: Epress with Node for REST API.
+- **Backend**: Express with Node for REST API.
 - **Database**: Oracle for data storage and management.
 
 ## Usage
 
-- **Admin**: Manage employees, doctors, and system settings.
+- **Admin**: Manage employees and doctors.
 - **Doctor**: Handle patient details and prescriptions.
 - **Employee**: Manage inventory and dispense medications.
 
