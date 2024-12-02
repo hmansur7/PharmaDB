@@ -178,7 +178,7 @@ app.get("/patients", async (req, res) => {
   let connection;
   try {
     const { connection: conn, result } = await dbQuery(
-      "SELECT * FROM PATIENT ORDER BY LAST_NAME ASC"
+      "SELECT * FROM PATIENT ORDER BY PATIENT_ID ASC"
     );
     connection = conn;
     const rows = result.rows;
@@ -265,7 +265,7 @@ app.post("/patients", async (req, res) => {
     ALLERGIES,
     MEDICAL_HISTORY,
   } = req.body;
-
+  console.log("Incoming Patient Data:", req.body);
   try {
     await dbQuery(
       `INSERT INTO PATIENT (
@@ -293,52 +293,52 @@ app.post("/patients", async (req, res) => {
 });
 
 app.put("/patients/:id", async (req, res) => {
-  const { id } = req.params;
+  const { id: PATIENT_ID } = req.params; // Use the correct destructured param
   const {
-    first_name,
-    last_name,
-    bday,
-    gender,
-    address,
-    phone_number,
-    allergies,
-    medical_history,
+    FIRST_NAME,
+    LAST_NAME,
+    BDAY,
+    GENDER,
+    ADDRESS,
+    PHONE_NUMBER,
+    ALLERGIES,
+    MEDICAL_HISTORY,
   } = req.body;
 
   console.log("Incoming Update Payload:", {
-    id,
-    first_name,
-    last_name,
-    bday,
-    gender,
-    address,
-    phone_number,
-    allergies,
-    medical_history,
+    PATIENT_ID,
+    FIRST_NAME,
+    LAST_NAME,
+    BDAY,
+    GENDER,
+    ADDRESS,
+    PHONE_NUMBER,
+    ALLERGIES,
+    MEDICAL_HISTORY,
   });
 
   try {
     await dbQuery(
-      `UPDATE patient SET 
-         first_name = :1, 
-         last_name = :2, 
-         bday = TO_DATE(:3, 'YYYY-MM-DD'), 
-         gender = :4, 
-         address = :5, 
-         phone_number = :6, 
-         allergies = :7, 
-         medical_history = :8 
-       WHERE patient_id = :9`,
+      `UPDATE PATIENT SET 
+         FIRST_NAME = :1, 
+         LAST_NAME = :2, 
+         BDAY = TO_DATE(:3, 'YYYY-MM-DD'), 
+         GENDER = :4, 
+         ADDRESS = :5, 
+         PHONE_NUMBER = :6, 
+         ALLERGIES = :7, 
+         MEDICAL_HISTORY = :8 
+       WHERE PATIENT_ID = :9`,
       [
-        first_name,
-        last_name,
-        bday,
-        gender,
-        address,
-        phone_number,
-        allergies,
-        medical_history,
-        id,
+        FIRST_NAME, // Use correct variable names
+        LAST_NAME,
+        BDAY,
+        GENDER,
+        ADDRESS,
+        PHONE_NUMBER,
+        ALLERGIES,
+        MEDICAL_HISTORY,
+        PATIENT_ID,
       ]
     );
     res.send("Patient updated successfully");
@@ -350,6 +350,7 @@ app.put("/patients/:id", async (req, res) => {
 
 app.delete("/patients/:id", async (req, res) => {
   const { id } = req.params;
+  console.log("Deleting patient with ID:", id);
   try {
     await dbQuery("DELETE FROM PATIENT WHERE PATIENT_ID = :1", [id]);
     res.send("Patient deleted successfully.");
@@ -668,41 +669,6 @@ app.delete("/prescriptions", async (req, res) => {
   } catch (err) {
     console.error("Error deleting prescriptions:", err.message);
     res.status(500).send("Error deleting prescriptions");
-  }
-});
-
-app.get("/patients-with-prescriptions", async (req, res) => {
-  let connection;
-  try {
-    const { connection: conn, result } = await dbQuery(
-      "SELECT * FROM PATIENTS_WITH_PERSCRIPTIONS"
-    );
-    connection = conn;
-    const rows = result.rows;
-
-    const processedRows = await Promise.all(
-      rows.map(async (row) => {
-        const processedRow = { ...row };
-        // Convert DOSAGE LOB to string if necessary
-        if (row.DOSAGE && typeof row.DOSAGE === "object") {
-          processedRow.DOSAGE = await readLob(row.DOSAGE);
-        }
-        return processedRow;
-      })
-    );
-
-    res.json(processedRows);
-  } catch (error) {
-    console.error("Error fetching data from view:", error.message);
-    res.status(500).send("Error fetching data from view.");
-  } finally {
-    if (connection) {
-      try {
-        await connection.close();
-      } catch (err) {
-        console.error("Error closing connection:", err.message);
-      }
-    }
   }
 });
 

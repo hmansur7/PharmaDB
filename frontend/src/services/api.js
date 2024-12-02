@@ -49,7 +49,11 @@ export const addPrescription = (prescription) =>
   api.post("/prescriptions", prescription);
 export const updatePrescription = (id, prescription) =>
   api.put(`/prescriptions/${id}`, prescription);
-export const deletePrescription = (id) => api.delete(`/prescriptions/${id}`);
+export const deletePrescription = (ids) =>
+  api.delete("/prescriptions", {
+    data: { ids }, // Axios supports the `data` key for DELETE requests.
+  });
+
 // Fetch data from the PATIENTS_WITH_PERSCRIPTIONS view
 export const getPatientsWithPrescriptions = () =>
   api.get("/patients-with-prescriptions");

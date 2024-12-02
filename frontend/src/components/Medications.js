@@ -12,10 +12,6 @@ import {
   TableSortLabel,
   TablePagination,
   TextField,
-  MenuItem,
-  Select,
-  InputLabel,
-  FormControl,
   Button,
   FormControlLabel,
   Checkbox,
@@ -52,12 +48,7 @@ const Medications = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [searchQuery, setSearchQuery] = useState("");
-
-  const [typeFilter, setTypeFilter] = useState("");
-  const [stockRange, setStockRange] = useState([0, 1000]);
-  const [priceRange, setPriceRange] = useState([0, 1000]);
-  const [isEditing, setIsEditing] = useState(false); // Track if we are editing
-
+  const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -125,44 +116,28 @@ const Medications = () => {
   };
 
   const handleSearch = (event) => {
-    setSearchQuery(event.target.value.toLowerCase());
-  };
+    const query = event.target.value.toLowerCase();
+    setSearchQuery(query);
 
-  const applyFilters = () => {
-    let data = medications;
+    const filtered = medications.filter((medicine) => {
+      const name = medicine.NAME.toLowerCase();
+      const type = medicine.TYPE.toLowerCase();
+      const description = medicine.DESCRIPTION?.toLowerCase() || "";
+      const restrictions = medicine.RESTRICTIONS?.toLowerCase() || "";
 
-    if (searchQuery) {
-      data = data.filter((med) => med.NAME.toLowerCase().includes(searchQuery));
-    }
-
-    if (typeFilter) {
-      data = data.filter((med) => med.TYPE === typeFilter);
-    }
-
-    if (stockRange) {
-      data = data.filter(
-        (med) => med.STOCK >= stockRange[0] && med.STOCK <= stockRange[1]
+      return (
+        name.includes(query) ||
+        type.includes(query) ||
+        description.includes(query) ||
+        restrictions.includes(query)
       );
-    }
+    });
 
-    if (priceRange) {
-      data = data.filter(
-        (med) => med.PRICE >= priceRange[0] && med.PRICE <= priceRange[1]
-      );
-    }
-
-    setFilteredMedications(data);
-    setPage(0); // Reset pagination to first page
+    setFilteredMedications(filtered);
+    setPage(0); // Reset pagination
   };
 
-  const handleFilterReset = () => {
-    setSearchQuery("");
-    setTypeFilter("");
-    setStockRange([0, 1000]);
-    setPriceRange([0, 1000]);
-    setFilteredMedications(medications);
-    setPage(0); // Reset pagination to first page
-  };
+  
 
   const handleSelectMedicine = (id) => {
     if (selectedMedicines.includes(id)) {
@@ -230,10 +205,10 @@ const Medications = () => {
   const handleDialogClose = () => {
     setDialogOpen(false);
     setNewMedicine({
-      medicine_id: "",
-      medicine_name: "",
-      expiry_date: "",
-      price: "",
+      MED_ID: "",
+      NAME: "",
+      EXPIRY: "",
+      PRICE: "",
     });
   };
 
@@ -249,7 +224,7 @@ const Medications = () => {
 
     try {
       const payload = { ids: selectedMedicines }; // Prepare correct payload
-      console.log("Payload for deletion:", payload); // Debug payload
+      // Proper logging mechanism can be added here if needed
       await deleteMedicines(payload); // Send correct payload
       setSnackbar({
         open: true,
@@ -296,7 +271,7 @@ const Medications = () => {
       RESTRICTIONS: medication.RESTRICTIONS || "",
       STOCK: medication.STOCK,
       PRICE: medication.PRICE,
-      EXPIRY: medication.EXPIRY.split("T")[0], // Convert to YYYY-MM-DD for date input
+      EXPIRY: formatDate(medication.EXPIRY), // Format date consistently
       REORDER: medication.REORDER,
     });
   };
@@ -331,88 +306,12 @@ const Medications = () => {
 
       <Box sx={{ display: "flex", gap: 2, mb: 2, flexWrap: "wrap" }}>
         <TextField
-          label="Search by Name"
+          label="Search by Name, Type, Description, or Restrictions"
           variant="outlined"
           value={searchQuery}
           onChange={handleSearch}
+          fullWidth
         />
-        <FormControl sx={{ minWidth: 200 }}>
-          <InputLabel id="type-filter">Type</InputLabel>
-          <Select
-            label="Type"
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-          >
-            <MenuItem value="">All</MenuItem>
-            {uniqueTypes.map((type, index) => (
-              <MenuItem key={index} value={type}>
-                {type}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <TextField
-          label="Min Stock"
-          type="number"
-          variant="outlined"
-          value={stockRange[0]}
-          onChange={(e) =>
-            setStockRange([
-              Math.max(0, parseInt(e.target.value, 10) || 0),
-              stockRange[1],
-            ])
-          }
-        />
-        <TextField
-          label="Max Stock"
-          type="number"
-          variant="outlined"
-          value={stockRange[1]}
-          onChange={(e) =>
-            setStockRange([
-              stockRange[0],
-              Math.max(0, parseInt(e.target.value, 10) || 1000),
-            ])
-          }
-        />
-
-        <TextField
-          label="Min Price"
-          type="number"
-          variant="outlined"
-          value={priceRange[0]}
-          onChange={(e) =>
-            setPriceRange([
-              Math.max(0, parseFloat(e.target.value) || 0),
-              priceRange[1],
-            ])
-          }
-        />
-        <TextField
-          label="Max Price"
-          type="number"
-          variant="outlined"
-          value={priceRange[1]}
-          onChange={(e) =>
-            setPriceRange([
-              priceRange[0],
-              Math.max(0, parseFloat(e.target.value) || 1000),
-            ])
-          }
-        />
-
-        <Button variant="contained" onClick={applyFilters}>
-          Apply Filters
-        </Button>
-
-        <Button
-          variant="outlined"
-          color="secondary"
-          onClick={handleFilterReset}
-        >
-          Reset Filters
-        </Button>
       </Box>
 
       {loading ? (
@@ -638,6 +537,7 @@ const Medications = () => {
             }}
           >
             <TextField
+              sx={{marginTop: 2,}}
               label="Medicine ID"
               variant="outlined"
               fullWidth

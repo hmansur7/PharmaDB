@@ -125,7 +125,7 @@ const Patients = () => {
         (patient.PHONE_NUMBER && patient.PHONE_NUMBER.includes(query))
     );
     setFilteredPatients(filtered);
-    setPage(0); // Reset pagination to the first page
+    setPage(0);
   };
 
   const handleSelectPatient = (id) => {
@@ -136,24 +136,39 @@ const Patients = () => {
     );
   };
 
-  const formatDateForBackend = (date) => {
-    if (!date) return null;
-    const d = new Date(date);
-    return d.toISOString().split("T")[0]; // Returns "YYYY-MM-DD"
-  };
-
   const handleSavePatient = async () => {
     try {
       const payload = {
         PATIENT_ID: newPatient.PATIENT_ID,
-        first_name: newPatient.FIRST_NAME,
-        last_name: newPatient.LAST_NAME,
-        bday: newPatient.BDAY,
-        gender: newPatient.GENDER,
-        address: newPatient.ADDRESS,
-        phone_number: newPatient.PHONE_NUMBER,
-        allergies: newPatient.ALLERGIES,
-        medical_history: newPatient.MEDICAL_HISTORY,
+        FIRST_NAME:
+          newPatient.FIRST_NAME ||
+          patients.find((p) => p.PATIENT_ID === newPatient.PATIENT_ID)
+            ?.FIRST_NAME,
+        LAST_NAME:
+          newPatient.LAST_NAME ||
+          patients.find((p) => p.PATIENT_ID === newPatient.PATIENT_ID)
+            ?.LAST_NAME,
+        BDAY:
+          newPatient.BDAY ||
+          patients.find((p) => p.PATIENT_ID === newPatient.PATIENT_ID)?.BDAY,
+        GENDER:
+          newPatient.GENDER ||
+          patients.find((p) => p.PATIENT_ID === newPatient.PATIENT_ID)?.GENDER,
+        ADDRESS:
+          newPatient.ADDRESS ||
+          patients.find((p) => p.PATIENT_ID === newPatient.PATIENT_ID)?.ADDRESS,
+        PHONE_NUMBER:
+          newPatient.PHONE_NUMBER ||
+          patients.find((p) => p.PATIENT_ID === newPatient.PATIENT_ID)
+            ?.PHONE_NUMBER,
+        ALLERGIES:
+          newPatient.ALLERGIES ||
+          patients.find((p) => p.PATIENT_ID === newPatient.PATIENT_ID)
+            ?.ALLERGIES,
+        MEDICAL_HISTORY:
+          newPatient.MEDICAL_HISTORY ||
+          patients.find((p) => p.PATIENT_ID === newPatient.PATIENT_ID)
+            ?.MEDICAL_HISTORY,
       };
 
       console.log("Payload for Update/Add:", payload);
@@ -178,6 +193,13 @@ const Patients = () => {
         PHONE_NUMBER: "",
         ALLERGIES: "",
         MEDICAL_HISTORY: "",
+      });
+      setSnackbar({
+        open: true,
+        message: isEditing
+          ? "Patient updated successfully."
+          : "Patient added successfully.",
+        severity: "success",
       });
     } catch (error) {
       console.error("Error saving patient:", error);
@@ -216,15 +238,15 @@ const Patients = () => {
   const handleOpenEditDialog = (patient) => {
     setIsEditing(true);
     setNewPatient({
-      PATIENT_ID: patient.PATIENT_ID,
-      FIRST_NAME: patient.FIRST_NAME,
-      LAST_NAME: patient.LAST_NAME,
+      PATIENT_ID: patient.PATIENT_ID || "",
+      FIRST_NAME: patient.FIRST_NAME || "",
+      LAST_NAME: patient.LAST_NAME || "",
       BDAY: patient.BDAY ? patient.BDAY.split("T")[0] : "",
-      GENDER: patient.GENDER,
-      ADDRESS: patient.ADDRESS,
-      PHONE_NUMBER: patient.PHONE_NUMBER,
-      ALLERGIES: patient.ALLERGIES,
-      MEDICAL_HISTORY: patient.MEDICAL_HISTORY,
+      GENDER: patient.GENDER || "",
+      ADDRESS: patient.ADDRESS || "",
+      PHONE_NUMBER: patient.PHONE_NUMBER || "",
+      ALLERGIES: patient.ALLERGIES || "",
+      MEDICAL_HISTORY: patient.MEDICAL_HISTORY || "",
     });
     setDialogOpen(true);
   };
@@ -302,8 +324,12 @@ const Patients = () => {
                     label: "Phone Number",
                     sortable: false,
                   },
-                  { key: "ALLERGIES", label: "Allergies", sortable: false }, 
-                  { key: "MEDICAL_HISTORY", label: "Medical History", sortable: false },
+                  { key: "ALLERGIES", label: "Allergies", sortable: false },
+                  {
+                    key: "MEDICAL_HISTORY",
+                    label: "Medical History",
+                    sortable: false,
+                  },
                 ].map((column) => (
                   <TableCell key={column.key}>
                     {column.sortable ? (
@@ -346,7 +372,7 @@ const Patients = () => {
                     <TableCell>{patient.ADDRESS}</TableCell>
                     <TableCell>{patient.PHONE_NUMBER}</TableCell>
                     <TableCell>{patient.ALLERGIES || "None"}</TableCell>
-                    <TableCell>{patient.MEDICAL_HISTORY || "None"}</TableCell> 
+                    <TableCell>{patient.MEDICAL_HISTORY || "None"}</TableCell>
                     <TableCell>
                       <Button
                         variant="outlined"
@@ -413,11 +439,12 @@ const Patients = () => {
         <DialogContent>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
             <TextField
+              sx={{ marginTop: 2 }}
               label="Patient ID"
               variant="outlined"
               fullWidth
               value={newPatient.PATIENT_ID}
-              disabled={isEditing} // Disable during editing
+              disabled={isEditing}
               onChange={(e) =>
                 setNewPatient({ ...newPatient, PATIENT_ID: e.target.value })
               }
