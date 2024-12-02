@@ -16,7 +16,7 @@ PharmaDB is a comprehensive pharmaceutical management system designed to streaml
 ## Tech Stack
 
 - **Frontend**: React, Material-UI for modern and responsive UI design.
-- **Backend**: Django for REST API.
+- **Backend**: Epress with Node for REST API.
 - **Database**: Oracle for data storage and management.
 
 ## Usage
